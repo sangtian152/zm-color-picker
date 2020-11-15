@@ -1,0 +1,117 @@
+body{
+  margin: 0;
+  padding: 0;
+}
+.zm-color-picker {
+  width: 350px;
+  position: relative;
+  text-align: left;
+  .el-color-picker__panel {
+    position: relative;
+  }
+  canvas {
+    vertical-align: middle;
+  }
+  .zm-color-preview {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAAGUlEQVQYV2M4gwH+YwCGIasIUwhT25BVBADtzYNYrHvv4gAAAABJRU5ErkJggg==);
+  }
+  .handle-bar {
+    width: 10px;
+    position: absolute;
+    top: 0;
+    right: 60px;
+    margin: 0 10px;
+  }
+  label {
+    text-align: right;
+    font-size: 12px;
+    & + label {
+      margin-top: 3px;
+    }
+  }
+  input {
+    border: 1px solid gray;
+    width: 42px;
+    height: 20px;
+    font-size: 12px;
+    padding: 0 2px;
+    outline: none;
+  }
+  .zm-color-picker__value {
+    height: 100%;
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  .zm-color-predefine {
+    width: 260px;
+    display: flex;
+    margin-top: 8px;
+    .zm-color-predefine__color {
+      width: 20px;
+      height: 20px;
+      border-radius: 3px;
+      overflow: hidden;
+      cursor: pointer;
+      margin: 0 3px;
+      &.selected{
+        box-shadow: 0 0 3px 2px #409eff;
+      }
+      div {
+        height: 100%;
+      }
+    }
+  }
+  #move {
+    box-sizing: border-box;
+    border: 2px solid white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: black;
+    position: absolute;
+    top: 0;
+    left: -5px;
+    cursor: pointer;
+  }
+  #circleSelect {
+    border: 2px solid white;
+    box-sizing: border-box;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    position: absolute;
+    top: -4px;
+    left: 254px;
+    cursor: pointer;
+  }
+  .zm-color-alpha-slider {
+    margin-top: 6px;
+    position: relative;
+    box-sizing: border-box;
+    width: 260px;
+    height: 10px;
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAAGUlEQVQYV2M4gwH+YwCGIasIUwhT25BVBADtzYNYrHvv4gAAAABJRU5ErkJggg==);
+    .zm-color-alpha-slider__bar {
+      height: 100%;
+    }
+    .zm-color-alpha-slider__thumb {
+      position: absolute;
+      cursor: pointer;
+      left: 0;
+      top: 0;
+      width: 4px;
+      height: 100%;
+      border-radius: 1px;
+      background: #fff;
+      border: 1px solid #f0f0f0;
+      z-index: 1;
+    }
+  }
+}
