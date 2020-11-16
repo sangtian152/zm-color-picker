@@ -1,51 +1,56 @@
 <template>
   <div class="zm-color-picker">
-    <div>
-      <div class="zm-color-picker__panel">
-        <canvas
-          ref="canvas"
-          :width="colorPickerWidth"
-          :height="colorPickerHeight"
-        ></canvas>
-        <div id="circleSelect" @mousedown="circleDown"></div>
-        <div class="handle-bar">
-          <canvas ref="barCanvas" width="10px" :height="colorPickerHeight"></canvas>
-          <div
-            ref="move"
-            id="move"
-            style="background-color:rgba(255,0,0,1)"
-            @mousedown="barDown"
-          ></div>
-        </div>
-        <div class="zm-color-picker__value">
-          <label
-            >R&nbsp;<input type="text" v-model="colorR" @keydown="handleColorRGB($event, 'colorR')"
-          /></label>
-          <label
-            >G&nbsp;<input type="text" v-model="colorG" @keydown="handleColorRGB($event, 'colorG')"
-          /></label>
-          <label
-            >B&nbsp;<input type="text" v-model="colorB" @keydown="handleColorRGB($event, 'colorB')"
-          /></label>
-          <label
-            >A&nbsp;<input type="text" v-model="alpha" @keydown="handleColorAlpha"
-          /></label>
-          <label>#&nbsp;<input type="text" v-model="colorHex" @keydown="handleColorHex" /></label>
-          <canvas
-            ref="canvas-preview"
-            class="zm-color-preview"
-            width="42px"
-            height="42px"
-          ></canvas>
-        </div>
-      </div>
-      <alpha-slider v-if="showAlpha" :r="colorR" :g="colorG" :b="colorB" :alpha.sync="alpha" @on-change="renderPreview" />
-      <color-predefine v-if="predefine.length > 0" :predefine="predefine" @on-predefine="handlePredefine"></color-predefine>
-      <div>
-        <button class="zm-button">取消</button>
-        <button class="zm-button" @click="handleSubmit">确定</button>
-      </div>
+    <div @click="visible = !visible" class="zm-color-picker__trigger">
+      <span
+        class="zm-color-picker__color"
+        :style="{background: `#${colorHex}`}"></span>
     </div>
+    <transition name="fade">
+      <div v-show="visible" ref="zm-color-dropdown" class="zm-color-dropdown">
+        <div class="zm-color-picker__panel">
+          <canvas
+            ref="canvas"
+            :width="colorPickerWidth"
+            :height="colorPickerHeight"
+          ></canvas>
+          <div id="circleSelect" class="zm-color-picker__select" @mousedown="circleDown"></div>
+          <div class="zm-color-picker__bar">
+            <canvas ref="barCanvas" width="10px" :height="colorPickerHeight"></canvas>
+            <div
+              ref="move"
+              class="zm-move"
+              style="background-color:rgba(255,0,0,1)"
+              @mousedown="barDown"
+            ></div>
+          </div>
+        </div>
+        <alpha-slider v-if="showAlpha" :r="colorR" :g="colorG" :b="colorB" :alpha.sync="alpha" @on-change="renderPreview" />
+        <color-predefine v-if="predefine.length > 0" :predefine="predefine" @on-predefine="handlePredefine"></color-predefine>
+        <div class="zm-color-picker_footer">
+          <div class="zm-color-picker__value">
+            <label v-if="format==='rgb' || format==='rgba'" class="zm-label">
+              <span v-if="format==='rgb'">rgb&nbsp;</span>
+              <span v-else-if="format==='rgba'">rgba&nbsp;</span>
+              <input type="text" v-model="colorR" class="zm-input" @keydown="handleColorRGB($event, 'colorR')" />
+              <input type="text" v-model="colorG" class="zm-input" @keydown="handleColorRGB($event, 'colorG')" />
+              <input type="text" v-model="colorB" class="zm-input" @keydown="handleColorRGB($event, 'colorB')" />
+              <input v-if="format==='rgba'" type="text" v-model="alpha" class="zm-input" @keydown="handleColorAlpha" />
+            </label>
+            <label v-if="format==='hex'" class="zm-label">#&nbsp;<input type="text" v-model="colorHex" class="zm-input zm-input__hex" @keydown="handleColorHex" /></label>
+            <canvas
+              ref="canvas-preview"
+              class="zm-color-picker_preview"
+              width="22px"
+              height="22px"
+            ></canvas>
+          </div>
+          <div>
+            <button class="zm-button zm-button--text" @click="hidden">取消</button>
+            <button class="zm-button" @click="handleSubmit">确定</button>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 <script type="text/babel">
@@ -75,7 +80,7 @@ export default {
     },
     showAlpha: {
       type: Boolean,
-      default: true
+      default: false
     },
     disabled: {
       type: Boolean,
@@ -84,6 +89,7 @@ export default {
   },
   data() {
     return {
+      visible: false,
       colorR: "255",
       colorG: "0",
       colorB: "0",
@@ -105,6 +111,24 @@ export default {
       colorPickerHeight: 184,
       timer: null,
     };
+  },
+  computed:{
+    format(){
+      if(this.showAlpha) {
+        return 'rgba'
+      } else {
+        const formats = ["hex", "rgb", "rgba"];
+        const { colorFormat } = this;
+        return formats.indexOf(colorFormat) ? colorFormat : "hex";
+      }
+    },
+  },
+  watch:{
+    visible(value) {
+      if(value) {
+        document.addEventListener("mousedown", this.handleClose);
+      }
+    }
   },
   mounted() {
     this.init();
@@ -320,7 +344,7 @@ export default {
       const moveY = event.clientY;
       this.dis = moveY - this.nowY;
       this.finalTop = this.moveTop + this.dis;
-      if (colorPickerHeight - 11 >= this.finalTop && this.finalTop >= -9) {
+      if (colorPickerHeight - 9 >= this.finalTop && this.finalTop >= -7) {
         const context2 = this.$refs.barCanvas.getContext("2d");
         //这里将603的=去掉是因为，当colorH为600时，getimgData会从bar最低端下部分取1像素高的颜色值，也就是说取的是白色，那么取色板上的颜色与颜色棒上的红色是不一样的
         this.move.style.top = this.finalTop + "px";
@@ -421,10 +445,10 @@ export default {
     renderByRGB(r, g, b){
       const { colorPickerHeight } = this;
       //利用返回的HSL中的H值，按照比列来确定move的位置
-      const moveCurrentH = ((colorPickerHeight - 4) * this.colorH) / 360 - 9;
+      const moveCurrentH = ((colorPickerHeight - 4) * this.colorH) / 360 - 7;
       this.move.style.top = moveCurrentH + "px";
       const context2 = this.$refs.barCanvas.getContext("2d");
-      const imgData = context2.getImageData(0, moveCurrentH + 10, 1, 1);
+      const imgData = context2.getImageData(0, moveCurrentH + 8, 1, 1);
       //将rgb转为16进制,变化move的背景色
       const { data } = imgData;
       const strHex = this.rgb2hex(data[0], data[1], data[2]);
@@ -553,16 +577,33 @@ export default {
       context.fillStyle = color;
       context.fillRect(0, 0, 50, 50);
     },
-    handleSubmit(){
-      const { colorFormat, colorR, colorB, colorG } = this;
+    getColor(colorFormat){
       let color = "";
-      if (this.showAlpha || colorFormat === "rgba") {
+      const { colorR, colorB, colorG } = this;
+      if (colorFormat === "rgba") {
         color = `rgba(${colorR},${colorG},${colorB}, ${this.alpha})`;
       } else if (colorFormat === "hex") {
         color = this.colorHex;
       } else if (colorFormat === "rgb") {
         color = `rgb(${colorR},${colorG},${colorB})`;
       }
+      return color;
+    },
+    handleClose(e){
+      const ele = this.$refs["zm-color-dropdown"]
+      if (ele.contains(e.target)) {
+        return false;
+      }
+      this.hidden();
+      document.removeEventListener("mousedown", this.handleClose);
+    },
+    hidden(){
+      this.init()
+      this.visible = false;
+    },
+    handleSubmit(){
+      const { format } = this;
+      const color = this.getColor(format)
       this.$emit("update:value", color)
       this.$emit("change", color)
     }

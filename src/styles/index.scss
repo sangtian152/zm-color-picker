@@ -3,63 +3,92 @@ body{
   padding: 0;
 }
 .zm-color-picker {
-  width: 350px;
   position: relative;
   text-align: left;
+  .zm-color-dropdown {
+    position: absolute;
+    z-index: 10;
+    padding: 6px;
+    box-sizing: content-box;
+    background-color: #fff;
+    border: 1px solid #ebeef5;
+    border-radius: 4px;
+    box-shadow: 0 2px 12px 0 rgba(0,0,0,.1);
+  }
+  .zm-color-picker__trigger {
+    width: 32px;
+    height: 32px;
+    padding: 4px;
+    border: 1px solid #e6e6e6;
+    border-radius: 4px;
+    .zm-color-picker__color{
+      display: block;
+      cursor: pointer;
+      box-sizing: border-box;
+      border: 1px solid #999;
+      border-radius: 2px;
+      width: 100%;
+      height: 100%;
+    }
+  }
   .zm-color-picker__panel {
+    width: 280px;
     position: relative;
   }
   canvas {
     vertical-align: middle;
   }
-  .zm-color-preview {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAAGUlEQVQYV2M4gwH+YwCGIasIUwhT25BVBADtzYNYrHvv4gAAAABJRU5ErkJggg==);
-  }
-  .handle-bar {
+  .zm-color-picker__bar {
     width: 10px;
     position: absolute;
     top: 0;
-    right: 60px;
-    margin: 0 10px;
+    right: 0;
+    margin: 0 3px;
+    .zm-move {
+      box-sizing: border-box;
+      border: 2px solid white;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background-color: black;
+      position: absolute;
+      top: 0;
+      left: -3px;
+      cursor: pointer;
+    }
   }
-  label {
+  .zm-label {
     text-align: right;
     font-size: 12px;
-    & + label {
+    & + .zm-label {
       margin-top: 3px;
     }
   }
-  input {
+  .zm-input {
     border: 1px solid gray;
-    width: 44px;
+    width: 30px;
     height: 20px;
     font-size: 12px;
     padding: 0 2px;
     outline: none;
-  }
-  .zm-color-picker__value {
-    height: 100%;
-    position: absolute;
-    top: 0;
-    right: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
+    &+.zm-input {
+      border-left: none;
+    }
+    &.zm-input__hex {
+      width: 70px;
+    }
   }
   .zm-color-predefine {
     width: 260px;
     display: flex;
     margin-top: 8px;
     .zm-color-predefine__color {
-      width: 20px;
-      height: 20px;
+      width: 18px;
+      height: 18px;
       border-radius: 3px;
       overflow: hidden;
       cursor: pointer;
-      margin: 0 3px;
+      margin: 0 4px;
       &.selected{
         box-shadow: 0 0 3px 2px #409eff;
       }
@@ -68,19 +97,7 @@ body{
       }
     }
   }
-  #move {
-    box-sizing: border-box;
-    border: 2px solid white;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background-color: black;
-    position: absolute;
-    top: 0;
-    left: -5px;
-    cursor: pointer;
-  }
-  #circleSelect {
+  .zm-color-picker__select {
     border: 2px solid white;
     box-sizing: border-box;
     width: 10px;
@@ -114,6 +131,23 @@ body{
       z-index: 1;
     }
   }
+  .zm-color-picker_preview {
+    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAAGUlEQVQYV2M4gwH+YwCGIasIUwhT25BVBADtzYNYrHvv4gAAAABJRU5ErkJggg==);
+  }
+  .zm-color-picker_footer {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    padding:5px 0;
+    text-align: right;
+  }
+  .zm-color-picker__value {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    margin-right: 15px;
+    align-items: center;
+  }
   .zm-button {
     display: inline-block;
     line-height: 1;
@@ -121,13 +155,23 @@ body{
     background: #fff;
     border: 1px solid #dcdfe6;
     color: #606266;
+    font-size: 12px;
     text-align: center;
     box-sizing: border-box;
     outline: none;
     user-select: none;
-    padding: 6px 10px;
-    font-size: 14px;
-    border-radius: 4px;
+    padding: 5px 10px;
+    border-radius: 2px;
+    &+.zm-button{
+      margin-left: 10px;
+    }
+    &.zm-button--text {
+      border-color: transparent;
+      color: #409eff;
+      background: transparent;
+      padding-left: 0;
+      padding-right: 0;
+    }
   }
   
 }
