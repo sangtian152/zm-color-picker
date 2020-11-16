@@ -1,7 +1,7 @@
 <template>
   <div class="zm-color-picker">
     <div>
-      <div class="el-color-picker__panel">
+      <div class="zm-color-picker__panel">
         <canvas
           ref="canvas"
           :width="colorPickerWidth"
@@ -34,20 +34,24 @@
           <canvas
             ref="canvas-preview"
             class="zm-color-preview"
-            width="40px"
-            height="40px"
-            style="background:rgba(255,0,0,1)"
+            width="42px"
+            height="42px"
           ></canvas>
         </div>
       </div>
-      <alpha-slider v-if="showAlpha" :r="colorR" :g="colorG" :b="colorB" :alpha.sync="alpha" />
+      <alpha-slider v-if="showAlpha" :r="colorR" :g="colorG" :b="colorB" :alpha.sync="alpha" @on-change="renderPreview" />
       <color-predefine v-if="predefine.length > 0" :predefine="predefine" @on-predefine="handlePredefine"></color-predefine>
+      <div>
+        <button class="zm-button">取消</button>
+        <button class="zm-button" @click="handleSubmit">确定</button>
+      </div>
     </div>
   </div>
 </template>
 <script type="text/babel">
 import ColorPredefine from "../colorPredefine"
 import AlphaSlider from "../alphaSlider"
+import { testColor } from "@/utils/utils"
 export default {
   name: "ZmColorPicker",
   components: {
@@ -55,6 +59,10 @@ export default {
     AlphaSlider
   },
   props: {
+    value:{
+      type: String,
+      default: "#ff0000"
+    },
     colorFormat:{
       type: String,
       default: "hex"
@@ -93,9 +101,6 @@ export default {
       circleLeft: "", //mousedown发生时，circleSelect当时的左边距
       moveTop: 0, //圆形颜色选择器top值
       bgcolor: "", //圆形颜色选择器发生变化时的背景色
-      showBGcolorR: "", //渲染板上圆形选择器所选中像素的颜色
-      showBGcolorG: "",
-      showBGcolorB: "",
       colorPickerWidth: 260,
       colorPickerHeight: 184,
       timer: null,
@@ -130,8 +135,23 @@ export default {
       grd2.addColorStop(1, "rgb(255,0,0)");
       context2.fillStyle = grd2;
       context2.fillRect(0, 0, 10, colorPickerHeight);
+      // 格式化颜色
+      const { value } = this;
+      const colorFormat = testColor(value);
+      if (colorFormat === "hex") {
+        this.hex2rgb(value)
+      } else if (colorFormat === "rgb") {
+        const rgb = this.splitRGB(value);
+        this.colorR = rgb[0];
+        this.colorG = rgb[1];
+        this.colorB = rgb[2];
+        this.colorHex = this.rgb2hex(...rgb)
+      }
+      const { colorR, colorB, colorG } = this;
+      //将rgb转换为Hsl
+      this.rgb2hsl(colorR, colorG, colorB)
       //初始设置画布颜色
-      this.render('red')
+      this.renderByRGB(colorR, colorG, colorB)
     },
     render(color) {
       const { colorPickerWidth, colorPickerHeight } = this;
@@ -156,59 +176,22 @@ export default {
       let circleCenterY = this.circleSelect.offsetTop + 5; //选择器半径的改动以及myCanvas外边距和宽度高度的改动，这里的数值也要做相应改动
       let circleCenterX = this.circleSelect.offsetLeft + 5;
       var imageData = context1.getImageData(circleCenterX, circleCenterY, 1, 1); //用来到达渲染板上圆形选择器中心点位置，然后取宽高各为一像素的像素点
-      this.showBGcolorR = imageData.data[0];
-      this.showBGcolorG = imageData.data[1];
-      this.showBGcolorB = imageData.data[2];
-      this.colorR = this.showBGcolorR;
-      this.colorG = this.showBGcolorG;
-      this.colorB = this.showBGcolorB;
+      this.colorR = imageData.data[0];
+      this.colorG = imageData.data[1];
+      this.colorB = imageData.data[2];
       const { colorR, colorG, colorB } = this;
       //根据渲染板上圆形择色器的rgb，转为16进制，将值填入右边一栏
-      const strHex = this.rgb2hex(colorR, colorG, colorB);
+      this.colorHex = this.rgb2hex(colorR, colorG, colorB);
       //将rgb转换为Hsl
-      (this.showBGcolorR /= 255),
-        (this.showBGcolorG /= 255),
-        (this.showBGcolorB /= 255);
-      const { showBGcolorR, showBGcolorG, showBGcolorB } = this;
-      const max = Math.max(
-        showBGcolorR,
-        showBGcolorG,
-        showBGcolorB
-      );
-      const min = Math.min(
-        showBGcolorR,
-        showBGcolorG,
-        showBGcolorB
-      );
-      let H, S, L = (max + min) / 2;
-      if (max == min) {
-        H = 0;
-        S = 0;
-      } else {
-        var d = max - min;
-        S = L > 0.5 ? d / (2 - max - min) : d / (max + min);
-        switch (max) {
-          case showBGcolorR:
-            H =
-              60 *
-              ((showBGcolorG - showBGcolorB) / d +
-                (showBGcolorG < showBGcolorB ? 6 : 0));
-            break;
-          case showBGcolorG:
-            H = 60 * ((showBGcolorB - showBGcolorR) / d + 2);
-            break;
-          case showBGcolorB:
-            H = 60 * ((showBGcolorR - showBGcolorG) / d + 4);
-            break;
-        }
-      }
-      this.colorH = Math.round(H);
-      this.colorS = Number(S.toFixed(2)); //将小数点转换为2位，再将字符串转换为数字
-      this.colorL = Number(L.toFixed(2));
-
+      this.rgb2hsl(colorR, colorG, colorB)
       //使右边颜色展示板能够随左边圆形择色器的改变而改变
-      this.colorHex = strHex;
-      this.handleFillRect(this.show, this.colorHex)
+      this.renderPreview(this.alpha)
+    },
+    splitRGB(color){
+      let rgb = color.replace(/^rgb\(/i, '');
+      rgb = rgb.replace(/\)$/i, '');
+      rgb = rgb.replace(/\s+/g,"");
+      return rgb.split(',')
     },
     //根据输入获得的RGB转为HSL
     rgb2hsl(r, g, b) {
@@ -383,6 +366,25 @@ export default {
       this.flag = false;
       this.selectflag = false;
     },
+    handleColorAlpha(event){
+      if (this.timer) {
+        clearTimeout(this.timer)
+      }
+      this.timer = setTimeout(() => {
+        const { target } = event
+        const value = Number(target.value);
+        if (!isNaN(value)) {
+          if (value > 1) {
+            this.alpha = 1
+          } else if(value < 0) {
+            this.alpha  = 0
+          }
+        } else {
+          this.alpha  = 0
+        }
+        this.renderPreview(this.alpha)
+      }, 200)
+    },
     handleColorRGB(event, key) {
       if (this.timer) {
         clearTimeout(this.timer)
@@ -440,10 +442,18 @@ export default {
       this.circleSelect.style.top = circleT + "px";
       this.circleSelect.style.left = circleL + "px";
       //渲染板上圆形择色器的位置改变时，改变展示板的颜色
-      this.handleFillRect(this.show, this.colorHex)
+      this.renderPreview(this.alpha)
     },
-    handleColorAlpha(){
-      
+    renderPreview(alpha){
+      //alpha改变时，改变展示板的颜色
+      const { colorR, colorB, colorG } = this;
+      let color;
+      if (this.showAlpha) {
+        color = `rgba(${colorR},${colorG},${colorB},${alpha})`
+      } else {
+        color = `rgb(${colorR},${colorG},${colorB})`
+      }
+      this.handleFillRect(this.show, color)
     },
     handleColorH(e){
       if (this.timer) {
@@ -532,10 +542,30 @@ export default {
       this.handleColorHex()
     },
     handleFillRect(canvas, color){
+      const type = testColor(color);
+      if(type==="hexn") {
+        color = `#${color}`
+      } else if (type === false) {
+        return
+      }
       const context = canvas.getContext("2d");
-      context.fillStyle = `#${color}`;
+      context.clearRect(0, 0, 50, 50);
+      context.fillStyle = color;
       context.fillRect(0, 0, 50, 50);
     },
+    handleSubmit(){
+      const { colorFormat, colorR, colorB, colorG } = this;
+      let color = "";
+      if (this.showAlpha || colorFormat === "rgba") {
+        color = `rgba(${colorR},${colorG},${colorB}, ${this.alpha})`;
+      } else if (colorFormat === "hex") {
+        color = this.colorHex;
+      } else if (colorFormat === "rgb") {
+        color = `rgb(${colorR},${colorG},${colorB})`;
+      }
+      this.$emit("update:value", color)
+      this.$emit("change", color)
+    }
   }
 };
 </script>

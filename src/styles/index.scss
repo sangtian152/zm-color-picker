@@ -6,7 +6,7 @@ body{
   width: 350px;
   position: relative;
   text-align: left;
-  .el-color-picker__panel {
+  .zm-color-picker__panel {
     position: relative;
   }
   canvas {
@@ -16,7 +16,7 @@ body{
     position: absolute;
     bottom: 0;
     right: 0;
-    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAAGUlEQVQYV2M4gwH+YwCGIasIUwhT25BVBADtzYNYrHvv4gAAAABJRU5ErkJggg==);
+    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAAGUlEQVQYV2M4gwH+YwCGIasIUwhT25BVBADtzYNYrHvv4gAAAABJRU5ErkJggg==);
   }
   .handle-bar {
     width: 10px;
@@ -34,7 +34,7 @@ body{
   }
   input {
     border: 1px solid gray;
-    width: 42px;
+    width: 44px;
     height: 20px;
     font-size: 12px;
     padding: 0 2px;
@@ -114,4 +114,20 @@ body{
       z-index: 1;
     }
   }
+  .zm-button {
+    display: inline-block;
+    line-height: 1;
+    cursor: pointer;
+    background: #fff;
+    border: 1px solid #dcdfe6;
+    color: #606266;
+    text-align: center;
+    box-sizing: border-box;
+    outline: none;
+    user-select: none;
+    padding: 6px 10px;
+    font-size: 14px;
+    border-radius: 4px;
+  }
+  
 }

@@ -22,7 +22,7 @@ export default {
     r: [Number, String],
     g: [Number, String],
     b: [Number, String],
-    alpha: Number,
+    alpha: [Number, String],
   },
   data(){
     return {
@@ -35,6 +35,11 @@ export default {
     background() {
       const { r, g, b } = this;
       return `linear-gradient(to right, rgba(${r}, ${g}, ${b}, 0) 0%, rgb(${r}, ${g}, ${b}) 100%)`;
+    }
+  },
+  watch:{
+    alpha(value){
+      this.getThumbLeft(value)
     }
   },
   mounted(){
@@ -51,7 +56,7 @@ export default {
 
     draggable(bar, dragConfig);
     draggable(thumb, dragConfig);
-    this.getThumbLeft()
+    this.getThumbLeft(this.alpha)
   },
   methods:{
     handleClick(event) {
@@ -69,14 +74,12 @@ export default {
       let left = event.clientX - rect.left;
       left = Math.max(thumb.offsetWidth / 2, left);
       left = Math.min(left, rect.width - thumb.offsetWidth / 2);
-      this.$emit('update:alpha', Number(((left - thumb.offsetWidth / 2) / (rect.width - thumb.offsetWidth)).toFixed(2)));
-      this.$nextTick(()=>{
-        this.getThumbLeft()
-      })
+      const alpha = Number(((left - thumb.offsetWidth / 2) / (rect.width - thumb.offsetWidth)).toFixed(2))
+      this.$emit("on-change", alpha)
+      this.$emit('update:alpha', alpha);
     },
-    getThumbLeft() {
+    getThumbLeft(alpha) {
       const el = this.$el;
-      const { alpha }  = this;
       if (!el) return 0;
       const thumb = this.$refs.thumb;
       this.thumbLeft = Number((alpha * (el.offsetWidth - thumb.offsetWidth / 2)).toFixed(2));

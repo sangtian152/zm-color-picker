@@ -8,13 +8,14 @@
 ```html
 <template>
   <div style="height: 420px; text-align:center;">
-    <zm-color-picker></zm-color-picker>
+    <zm-color-picker v-model="colorValue"></zm-color-picker>
   </div>
 </template>
-<script type="text/babel">
+<script>
     export default {
       data(){
         return {
+          colorValue: 'rgb(255, 166, 0)',
         } 
       },
       created(){
