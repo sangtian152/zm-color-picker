@@ -1,21 +1,39 @@
 <template>
   <div class="zm-color-picker">
     <div @click="handleTrigger" ref="trigger" class="zm-color-picker__trigger">
-      <span
-        class="zm-color-picker__color"
-        :style="{background: `#${colorHex}`}"></span>
+      <slot name="reference">
+        <span
+          class="zm-color-picker__color"
+          :style="{ background: `#${colorHex}` }"
+        ></span>
+      </slot>
     </div>
     <transition name="fade">
-      <div v-show="visible" ref="zm-color-dropdown" class="zm-color-dropdown" :style="dropdownStyle">
+      <div
+        v-show="visible"
+        ref="zm-color-dropdown"
+        class="zm-color-dropdown"
+        :style="dropdownStyle"
+      >
         <div class="zm-color-picker__panel">
           <canvas
             ref="canvas"
+            class="zm-canvas"
             :width="colorPickerWidth"
             :height="colorPickerHeight"
           ></canvas>
-          <div id="circleSelect" class="zm-color-picker__select" @mousedown="circleDown"></div>
+          <div
+            id="circleSelect"
+            class="zm-color-picker__select"
+            @mousedown="circleDown"
+          ></div>
           <div class="zm-color-picker__bar">
-            <canvas ref="barCanvas" width="10px" :height="colorPickerHeight"></canvas>
+            <canvas
+              ref="barCanvas"
+              class="zm-canvas"
+              width="10px"
+              :height="colorPickerHeight"
+            ></canvas>
             <div
               ref="move"
               class="zm-move"
@@ -24,28 +42,71 @@
             ></div>
           </div>
         </div>
-        <alpha-slider v-if="showAlpha" :r="colorR" :g="colorG" :b="colorB" :alpha.sync="alpha" @on-change="renderPreview" />
-        <color-predefine v-if="predefine.length > 0" :predefine="predefine" @on-predefine="handlePredefine"></color-predefine>
+        <alpha-slider
+          v-if="showAlpha"
+          :r="colorR"
+          :g="colorG"
+          :b="colorB"
+          :alpha.sync="alpha"
+          @on-change="renderPreview"
+        />
+        <color-predefine
+          v-if="predefine.length > 0"
+          :predefine="predefine"
+          @on-predefine="handlePredefine"
+        ></color-predefine>
         <div class="zm-color-picker_footer">
           <div class="zm-color-picker__value">
-            <label v-if="format==='rgb' || format==='rgba'" class="zm-label">
-              <span v-if="format==='rgb'">rgb&nbsp;</span>
-              <span v-else-if="format==='rgba'">rgba&nbsp;</span>
-              <input type="text" v-model="colorR" class="zm-input" @keydown="handleColorRGB($event, 'colorR')" />
-              <input type="text" v-model="colorG" class="zm-input" @keydown="handleColorRGB($event, 'colorG')" />
-              <input type="text" v-model="colorB" class="zm-input" @keydown="handleColorRGB($event, 'colorB')" />
-              <input v-if="format==='rgba'" type="text" v-model="alpha" class="zm-input" @keydown="handleColorAlpha" />
+            <label
+              v-if="format === 'rgb' || format === 'rgba'"
+              class="zm-label"
+            >
+              <span v-if="format === 'rgb'">rgb&nbsp;</span>
+              <span v-else-if="format === 'rgba'">rgba&nbsp;</span>
+              <input
+                type="text"
+                v-model="colorR"
+                class="zm-input"
+                @keydown="handleColorRGB($event, 'colorR')"
+              />
+              <input
+                type="text"
+                v-model="colorG"
+                class="zm-input"
+                @keydown="handleColorRGB($event, 'colorG')"
+              />
+              <input
+                type="text"
+                v-model="colorB"
+                class="zm-input"
+                @keydown="handleColorRGB($event, 'colorB')"
+              />
+              <input
+                v-if="format === 'rgba'"
+                type="text"
+                v-model="alpha"
+                class="zm-input"
+                @keydown="handleColorAlpha"
+              />
             </label>
-            <label v-if="format==='hex'" class="zm-label">#&nbsp;<input type="text" v-model="colorHex" class="zm-input zm-input__hex" @keydown="handleColorHex" /></label>
+            <label v-if="format === 'hex'" class="zm-label"
+              >#&nbsp;<input
+                type="text"
+                v-model="colorHex"
+                class="zm-input zm-input__hex"
+                @keydown="handleColorHex"
+            /></label>
             <canvas
               ref="canvas-preview"
-              class="zm-color-picker_preview"
+              class="zm-canvas zm-color-picker_preview"
               width="22px"
               height="22px"
             ></canvas>
           </div>
           <div>
-            <button class="zm-button zm-button--text" @click="close">取消</button>
+            <button class="zm-button zm-button--text" @click="close">
+              取消
+            </button>
             <button class="zm-button" @click="handleSubmit">确定</button>
           </div>
         </div>
@@ -54,9 +115,9 @@
   </div>
 </template>
 <script type="text/babel">
-import ColorPredefine from "../colorPredefine"
-import AlphaSlider from "../alphaSlider"
-import { testColor } from "@/utils/utils"
+import ColorPredefine from "../colorPredefine";
+import AlphaSlider from "../alphaSlider";
+import { testColor } from "@/utils/utils";
 export default {
   name: "ZmColorPicker",
   components: {
@@ -65,13 +126,13 @@ export default {
   },
   props: {
     value: String,
-    colorFormat:{
+    colorFormat: {
       type: String,
       default: "hex"
     },
-    predefine:{
+    predefine: {
       type: Array,
-      default:() => {
+      default: () => {
         return [];
       }
     },
@@ -82,7 +143,7 @@ export default {
     disabled: {
       type: Boolean,
       default: false
-    },
+    }
   },
   data() {
     return {
@@ -106,30 +167,19 @@ export default {
       bgcolor: "", //圆形颜色选择器发生变化时的背景色
       colorPickerWidth: 260,
       colorPickerHeight: 184,
-      dropdownStyle:{},
+      dropdownStyle: {},
       timer: null,
-      hasInit: false,
+      hasInit: false
     };
   },
-  computed:{
-    format(){
-      if(this.showAlpha) {
-        return 'rgba'
+  computed: {
+    format() {
+      if (this.showAlpha) {
+        return "rgba";
       } else {
         const formats = ["hex", "rgb", "rgba"];
         const { colorFormat } = this;
         return formats.indexOf(colorFormat) ? colorFormat : "hex";
-      }
-    },
-  },
-  watch:{
-    visible(value) {
-      if(value) {
-        document.addEventListener("mousedown", this.handleCancel);
-        document.addEventListener("mouseup", this.handleMouseup);
-        document.addEventListener("mousemove", this.handleMousemove);
-        const trigger = this.$refs.trigger
-        console.dir(trigger)
       }
     }
   },
@@ -139,7 +189,7 @@ export default {
   methods: {
     init() {
       this.move = this.$refs.move;
-      this.show = this.$refs['canvas-preview'];
+      this.show = this.$refs["canvas-preview"];
       const bar = this.$refs.barCanvas;
       this.circleSelect = document.getElementById("circleSelect");
       const { colorPickerHeight } = this;
@@ -160,19 +210,19 @@ export default {
       const { value } = this;
       const colorFormat = testColor(value);
       if (colorFormat === "hex") {
-        this.hex2rgb(value)
+        this.hex2rgb(value);
       } else if (colorFormat === "rgb") {
         const rgb = this.splitRGB(value);
         this.colorR = rgb[0];
         this.colorG = rgb[1];
         this.colorB = rgb[2];
-        this.colorHex = this.rgb2hex(...rgb)
+        this.colorHex = this.rgb2hex(...rgb);
       }
       const { colorR, colorB, colorG } = this;
       //将rgb转换为Hsl
-      this.rgb2hsl(colorR, colorG, colorB)
+      this.rgb2hsl(colorR, colorG, colorB);
       //初始设置画布颜色
-      this.renderByRGB(colorR, colorG, colorB)
+      this.renderByRGB(colorR, colorG, colorB);
       this.hasInit = true;
     },
     render(color) {
@@ -205,15 +255,15 @@ export default {
       //根据渲染板上圆形择色器的rgb，转为16进制，将值填入右边一栏
       this.colorHex = this.rgb2hex(colorR, colorG, colorB);
       //将rgb转换为Hsl
-      this.rgb2hsl(colorR, colorG, colorB)
+      this.rgb2hsl(colorR, colorG, colorB);
       //使右边颜色展示板能够随左边圆形择色器的改变而改变
-      this.renderPreview()
+      this.renderPreview();
     },
-    splitRGB(color){
-      let rgb = color.replace(/^rgb\(/i, '');
-      rgb = rgb.replace(/\)$/i, '');
-      rgb = rgb.replace(/\s+/g,"");
-      return rgb.split(',')
+    splitRGB(color) {
+      let rgb = color.replace(/^rgb\(/i, "");
+      rgb = rgb.replace(/\)$/i, "");
+      rgb = rgb.replace(/\s+/g, "");
+      return rgb.split(",");
     },
     //根据输入获得的RGB转为HSL
     rgb2hsl(r, g, b) {
@@ -291,7 +341,7 @@ export default {
       }
     },
     hex2rgb(color) {
-      color = color.replace(/^#+/,'');
+      color = color.replace(/^#+/, "");
       // 16进制颜色值的正则
       const reg = /^([0-9a-f]{3}|[0-9a-f]{6})$/;
       // 把颜色值变成小写
@@ -371,7 +421,7 @@ export default {
       this.pickRenderShow();
     },
     handleMousemove(event) {
-      if(this.disabled){
+      if (this.disabled) {
         return false;
       }
       if (this.flag) {
@@ -384,40 +434,40 @@ export default {
       this.flag = false;
       this.selectflag = false;
     },
-    handleColorAlpha(event){
+    handleColorAlpha(event) {
       if (this.timer) {
-        clearTimeout(this.timer)
+        clearTimeout(this.timer);
       }
       this.timer = setTimeout(() => {
-        const { target } = event
+        const { target } = event;
         const value = Number(target.value);
         if (!isNaN(value)) {
           if (value > 1) {
-            this.alpha = 1
-          } else if(value < 0) {
-            this.alpha  = 0
+            this.alpha = 1;
+          } else if (value < 0) {
+            this.alpha = 0;
           }
         } else {
-          this.alpha  = 0
+          this.alpha = 0;
         }
-        this.renderPreview()
-      }, 200)
+        this.renderPreview();
+      }, 200);
     },
     handleColorRGB(event, key) {
       if (this.timer) {
-        clearTimeout(this.timer)
+        clearTimeout(this.timer);
       }
       this.timer = setTimeout(() => {
-        const { target } = event
+        const { target } = event;
         const value = Number(target.value);
         if (!isNaN(value)) {
           if (value > 255) {
-            this[key]  = 255
-          } else if(value < 0) {
-            this[key]  = 0
+            this[key] = 255;
+          } else if (value < 0) {
+            this[key] = 0;
           }
         } else {
-          this[key]  = 0
+          this[key] = 0;
         }
         const inputNum = [];
         //setTimeout方法暂定，这是为了在键盘按下后，能够更新rgb，获得最新值，从而改变HSL的值，不然键盘按下的一瞬间，获得的数据是上一次的数据；
@@ -436,7 +486,7 @@ export default {
         }
       }, 200);
     },
-    renderByRGB(r, g, b){
+    renderByRGB(r, g, b) {
       const { colorPickerHeight } = this;
       //利用返回的HSL中的H值，按照比列来确定move的位置
       const moveCurrentH = ((colorPickerHeight - 4) * this.colorH) / 360 - 7;
@@ -460,20 +510,20 @@ export default {
       this.circleSelect.style.top = circleT + "px";
       this.circleSelect.style.left = circleL + "px";
       //渲染板上圆形择色器的位置改变时，改变展示板的颜色
-      this.renderPreview()
+      this.renderPreview();
     },
-    renderPreview(){
+    renderPreview() {
       //改变展示板的颜色
       const { format } = this;
-      const color = this.getColor(format)
-      this.handleFillRect(this.show, color)
-      if(this.hasInit){
-        this.$emit("active-change", color)
+      const color = this.getColor(format);
+      this.handleFillRect(this.show, color);
+      if (this.hasInit) {
+        this.$emit("active-change", color);
       }
     },
-    handleColorH(e){
+    handleColorH(e) {
       if (this.timer) {
-        clearTimeout(this.timer)
+        clearTimeout(this.timer);
       }
       this.timer = setTimeout(() => {
         const { value } = e.target;
@@ -482,12 +532,12 @@ export default {
         } else if (value < 0) {
           this.colorH = 0;
         }
-        this.handleColorHLS('colorH', value)
-      }, 200)
+        this.handleColorHLS("colorH", value);
+      }, 200);
     },
-    handleColorS(e){
+    handleColorS(e) {
       if (this.timer) {
-        clearTimeout(this.timer)
+        clearTimeout(this.timer);
       }
       this.timer = setTimeout(() => {
         const { value } = e.target;
@@ -496,12 +546,12 @@ export default {
         } else if (value < 0) {
           this.colorS = 0;
         }
-        this.handleColorHLS('colorS', value)
-      }, 200)
+        this.handleColorHLS("colorS", value);
+      }, 200);
     },
-    handleColorL(e){
+    handleColorL(e) {
       if (this.timer) {
-        clearTimeout(this.timer)
+        clearTimeout(this.timer);
       }
       this.timer = setTimeout(() => {
         const { value } = e.target;
@@ -510,11 +560,11 @@ export default {
         } else if (value < 0) {
           this.colorL = 0;
         }
-        this.handleColorHLS('colorL', value)
-      }, 200)
+        this.handleColorHLS("colorL", value);
+      }, 200);
     },
     handleColorHLS(type, value) {
-      if(isNaN(Number(value))) {
+      if (isNaN(Number(value))) {
         this[type] = 0;
       }
       const inputHSL = [];
@@ -537,38 +587,38 @@ export default {
           Number(inputHSL[2])
         );
         const { colorR, colorB, colorG } = this;
-        this.colorHex = this.rgb2hex(colorR,colorB,colorB);
+        this.colorHex = this.rgb2hex(colorR, colorB, colorB);
         this.renderByRGB(colorR, colorG, colorB);
       } else {
         return;
       }
     },
-    handleColorHex(){
+    handleColorHex() {
       if (this.timer) {
-        clearTimeout(this.timer)
+        clearTimeout(this.timer);
       }
       this.timer = setTimeout(() => {
         this.hex2rgb(this.colorHex);
         const { colorR, colorB, colorG } = this;
         this.rgb2hsl(colorR, colorG, colorB);
         this.renderByRGB(colorR, colorG, colorB);
-      })
+      });
     },
-    handlePredefine(color){
-      this.colorHex = color.replace(/^#+/,'');
-      this.handleColorHex()
+    handlePredefine(color) {
+      this.colorHex = color.replace(/^#+/, "");
+      this.handleColorHex();
     },
-    handleFillRect(canvas, color){
+    handleFillRect(canvas, color) {
       const type = testColor(color);
       if (type === false) {
-        return
+        return;
       }
       const context = canvas.getContext("2d");
       context.clearRect(0, 0, 50, 50);
       context.fillStyle = color;
       context.fillRect(0, 0, 50, 50);
     },
-    getColor(colorFormat){
+    getColor(colorFormat) {
       let color = "";
       const { colorR, colorB, colorG } = this;
       if (colorFormat === "rgba") {
@@ -580,39 +630,64 @@ export default {
       }
       return color;
     },
-    handleTrigger(e){
-      console.log(e)
-      this.visible = !this.visible;
-      if (!this.visible) {
+    getPosition(e) {
+      const { clientX, clientY } = e;
+      const dropdown = this.$refs["zm-color-dropdown"];
+      const { clientWidth, clientHeight } = dropdown;
+      const bodyWidth = window.innerWidth || document.body.clientWidth;
+      const bodyHeight = window.innerHeight || document.body.clientHeight;
+      const toRight = bodyWidth - clientX;
+      const style = {};
+      if (bodyHeight - clientY > clientHeight) {
+        style.top = `${this.$el.clientHeight + 2}px`;
+      } else {
+        style.top = `-${clientHeight + 2}px`;
+      }
+      if (clientX > clientWidth / 2 && toRight > clientWidth / 2) {
+        style.left = "50%";
+        style.transform = "translateX(-50%)";
+      } else if (toRight < clientWidth / 2) {
+        style.right = "0";
+      } else {
+        style.left = "0";
+      }
+      this.dropdownStyle = style;
+    },
+    handleTrigger(e) {
+      if (this.visible) {
         this.close();
+      } else {
+        this.visible = true;
+        this.getPosition(e);
+        document.addEventListener("mousedown", this.handleCancel);
+        document.addEventListener("mouseup", this.handleMouseup);
+        document.addEventListener("mousemove", this.handleMousemove);
       }
     },
-    handleCancel(e){
-      const ele = this.$refs["zm-color-dropdown"]
-      if (ele.contains(e.target)) {
+    handleCancel(e) {
+      const ele = this.$refs["zm-color-dropdown"];
+      const trigger = this.$refs["trigger"];
+      if (ele.contains(e.target) || trigger.contains(e.target)) {
         return false;
       }
       this.close();
     },
-    close(){
+    close() {
       this.hasInit = false;
       this.visible = false;
-      this.init()
+      this.init();
       document.removeEventListener("mousedown", this.handleCancel);
       document.removeEventListener("mouseup", this.handleMouseup);
       document.removeEventListener("mousemove", this.handleMousemove);
     },
-    handleSubmit(){
+    handleSubmit() {
       const { format } = this;
       this.visible = false;
-      const color = this.getColor(format)
-      this.$emit("input", color)
-      this.$emit("change", color)
+      const color = this.getColor(format);
+      this.$emit("input", color);
+      this.$emit("change", color);
     }
   }
 };
 </script>
-<style lang="scss" scoped>
-
-
-</style>
+<style lang="scss" scoped></style>

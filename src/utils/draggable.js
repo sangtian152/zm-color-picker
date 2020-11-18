@@ -1,4 +1,4 @@
-import Vue from 'vue';
+import Vue from "vue";
 let isDragging = false;
 
 export default function(element, options) {
@@ -9,8 +9,8 @@ export default function(element, options) {
     }
   };
   const upFn = function(event) {
-    document.removeEventListener('mousemove', moveFn);
-    document.removeEventListener('mouseup', upFn);
+    document.removeEventListener("mousemove", moveFn);
+    document.removeEventListener("mouseup", upFn);
     document.onselectstart = null;
     document.ondragstart = null;
 
@@ -20,13 +20,17 @@ export default function(element, options) {
       options.end(event);
     }
   };
-  element.addEventListener('mousedown', function(event) {
+  element.addEventListener("mousedown", function(event) {
     if (isDragging) return;
-    document.onselectstart = function() { return false; };
-    document.ondragstart = function() { return false; };
+    document.onselectstart = function() {
+      return false;
+    };
+    document.ondragstart = function() {
+      return false;
+    };
 
-    document.addEventListener('mousemove', moveFn);
-    document.addEventListener('mouseup', upFn);
+    document.addEventListener("mousemove", moveFn);
+    document.addEventListener("mouseup", upFn);
     isDragging = true;
 
     if (options.start) {

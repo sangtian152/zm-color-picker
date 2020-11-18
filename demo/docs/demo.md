@@ -45,7 +45,7 @@
 | v-model     | 绑定值   | String  |  —   |   ——   |
 | disabled    | 是否禁用   | Boolean  |  —   |  false  |
 | show-alpha    | 是否支持透明度选择   | Boolean  |  —   |  false  |
-| color-format   | 写入 v-model 的颜色的格式   | Number  |  hex / rgb   |  hex（show-alpha 为 false）/ rgb（show-alpha 为 true）  |
+| color-format   | 写入 v-model 的颜色的格式   | String  |  hex / rgb   |  hex（show-alpha 为 false）/ rgb（show-alpha 为 true）  |
 | predefine    | 预定义颜色   | Array  |  —   |  ——  |
 
 ### Events
@@ -60,3 +60,9 @@
 |---------- |-------- |---------- |
 | clear | 清空画布  |  —   |
 | done | 完成签名 |  —   |
+
+### Slot
+
+| 参数      | 说明    |
+|---------- |-------- |
+| reference | 触发 colorPicker 显示的 HTML 元素  |

@@ -1,17 +1,32 @@
 {
   "name": "zm-color-picker",
   "version": "1.0.0",
-  "private": true,
   "description": "",
   "author": {
     "name": "zzh"
   },
+  "private": false,
+  "main": "lib/zm-color-picker.common.js",
+  "homepage": "https://sangtian152.gitee.io/zm-color-picker",
+  "keywords": [
+    "colorPicker",
+    "vue",
+    "canvas",
+    "components"
+  ],
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://gitee.com/sangtian152/zm-color-picker.git"
+  },
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint --fix"
+    "lint": "vue-cli-service lint --fix",
+    "build-lib": "vue-cli-service build --target lib --name zm-color-picker --dest lib src/index.js"
   },
-  "main": "index.js",
   "dependencies": {
     "core-js": "^3.6.5",
     "vue": "^2.6.11"
@@ -43,12 +58,6 @@
     "vuex": "^3.4.0"
   },
   "_id": "zm-color-picker@1.0.0",
-  "keywords": [
-    "colorPicker",
-    "vue",
-    "canvas",
-    "components"
-  ],
   "license": "MIT",
   "readme": "ERROR: No README data found!"
 }
