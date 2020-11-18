@@ -7,7 +7,7 @@
 ::: demo
 ```html
 <template>
-  <div style="height: 420px; text-align:center;">
+  <div style="height: 200px; text-align:center;">
     <zm-color-picker v-model="colorValue" @change="handleChange" @active-change="handleActiveChange"></zm-color-picker>
   </div>
 </template>

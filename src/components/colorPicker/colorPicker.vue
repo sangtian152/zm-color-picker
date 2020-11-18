@@ -657,6 +657,9 @@ export default {
       if (this.visible) {
         this.close();
       } else {
+        if (this.disabled) {
+          return false;
+        }
         this.visible = true;
         this.getPosition(e);
         document.addEventListener("mousedown", this.handleCancel);
