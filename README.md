@@ -25,4 +25,4 @@ Vue.use(ZmColorPicker);
 
 ### 文档
 
-[说明文档][Configuration Reference](https://sangtian152.github.io/zm-color-picker/).
+[说明文档](https://sangtian152.github.io/zm-color-picker/).
