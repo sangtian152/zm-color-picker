@@ -75,8 +75,8 @@ export default {
       left = Math.max(thumb.offsetWidth / 2, left);
       left = Math.min(left, rect.width - thumb.offsetWidth / 2);
       const alpha = Number(((left - thumb.offsetWidth / 2) / (rect.width - thumb.offsetWidth)).toFixed(2))
-      this.$emit("on-change", alpha)
       this.$emit('update:alpha', alpha);
+      this.$emit("on-change", alpha)
     },
     getThumbLeft(alpha) {
       const el = this.$el;

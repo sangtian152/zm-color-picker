@@ -1,12 +1,12 @@
 <template>
   <div class="zm-color-picker">
-    <div @click="visible = !visible" class="zm-color-picker__trigger">
+    <div @click="handleTrigger" ref="trigger" class="zm-color-picker__trigger">
       <span
         class="zm-color-picker__color"
         :style="{background: `#${colorHex}`}"></span>
     </div>
     <transition name="fade">
-      <div v-show="visible" ref="zm-color-dropdown" class="zm-color-dropdown">
+      <div v-show="visible" ref="zm-color-dropdown" class="zm-color-dropdown" :style="dropdownStyle">
         <div class="zm-color-picker__panel">
           <canvas
             ref="canvas"
@@ -45,7 +45,7 @@
             ></canvas>
           </div>
           <div>
-            <button class="zm-button zm-button--text" @click="hidden">取消</button>
+            <button class="zm-button zm-button--text" @click="close">取消</button>
             <button class="zm-button" @click="handleSubmit">确定</button>
           </div>
         </div>
@@ -64,10 +64,7 @@ export default {
     AlphaSlider
   },
   props: {
-    value:{
-      type: String,
-      default: "#ff0000"
-    },
+    value: String,
     colorFormat:{
       type: String,
       default: "hex"
@@ -75,7 +72,7 @@ export default {
     predefine:{
       type: Array,
       default:() => {
-        return ['#ff4500', '#ff8c00', '#ffd700'];
+        return [];
       }
     },
     showAlpha: {
@@ -109,7 +106,9 @@ export default {
       bgcolor: "", //圆形颜色选择器发生变化时的背景色
       colorPickerWidth: 260,
       colorPickerHeight: 184,
+      dropdownStyle:{},
       timer: null,
+      hasInit: false,
     };
   },
   computed:{
@@ -126,18 +125,16 @@ export default {
   watch:{
     visible(value) {
       if(value) {
-        document.addEventListener("mousedown", this.handleClose);
+        document.addEventListener("mousedown", this.handleCancel);
+        document.addEventListener("mouseup", this.handleMouseup);
+        document.addEventListener("mousemove", this.handleMousemove);
+        const trigger = this.$refs.trigger
+        console.dir(trigger)
       }
     }
   },
   mounted() {
     this.init();
-    document.addEventListener("mouseup", this.handleMouseup);
-    document.addEventListener("mousemove", this.handleMousemove);
-  },
-  beforeDestoryed() {
-    document.removeEventListener("mouseup", this.handleMouseup);
-    document.removeEventListener("mousemove", this.handleMousemove);
   },
   methods: {
     init() {
@@ -176,6 +173,7 @@ export default {
       this.rgb2hsl(colorR, colorG, colorB)
       //初始设置画布颜色
       this.renderByRGB(colorR, colorG, colorB)
+      this.hasInit = true;
     },
     render(color) {
       const { colorPickerWidth, colorPickerHeight } = this;
@@ -209,7 +207,7 @@ export default {
       //将rgb转换为Hsl
       this.rgb2hsl(colorR, colorG, colorB)
       //使右边颜色展示板能够随左边圆形择色器的改变而改变
-      this.renderPreview(this.alpha)
+      this.renderPreview()
     },
     splitRGB(color){
       let rgb = color.replace(/^rgb\(/i, '');
@@ -291,13 +289,9 @@ export default {
         this.colorG = Math.round(g1 * 255);
         this.colorB = Math.round(b1 * 255);
       }
-      this.colorHex = this.rgb2hex(
-        Math.round(r1 * 255),
-        Math.round(g1 * 255),
-        Math.round(b1 * 255)
-      );
     },
     hex2rgb(color) {
+      color = color.replace(/^#+/,'');
       // 16进制颜色值的正则
       const reg = /^([0-9a-f]{3}|[0-9a-f]{6})$/;
       // 把颜色值变成小写
@@ -406,7 +400,7 @@ export default {
         } else {
           this.alpha  = 0
         }
-        this.renderPreview(this.alpha)
+        this.renderPreview()
       }, 200)
     },
     handleColorRGB(event, key) {
@@ -466,18 +460,16 @@ export default {
       this.circleSelect.style.top = circleT + "px";
       this.circleSelect.style.left = circleL + "px";
       //渲染板上圆形择色器的位置改变时，改变展示板的颜色
-      this.renderPreview(this.alpha)
+      this.renderPreview()
     },
-    renderPreview(alpha){
-      //alpha改变时，改变展示板的颜色
-      const { colorR, colorB, colorG } = this;
-      let color;
-      if (this.showAlpha) {
-        color = `rgba(${colorR},${colorG},${colorB},${alpha})`
-      } else {
-        color = `rgb(${colorR},${colorG},${colorB})`
-      }
+    renderPreview(){
+      //改变展示板的颜色
+      const { format } = this;
+      const color = this.getColor(format)
       this.handleFillRect(this.show, color)
+      if(this.hasInit){
+        this.$emit("active-change", color)
+      }
     },
     handleColorH(e){
       if (this.timer) {
@@ -545,7 +537,8 @@ export default {
           Number(inputHSL[2])
         );
         const { colorR, colorB, colorG } = this;
-        this.renderByRGB(colorR, colorB, colorG)
+        this.colorHex = this.rgb2hex(colorR,colorB,colorB);
+        this.renderByRGB(colorR, colorG, colorB);
       } else {
         return;
       }
@@ -567,9 +560,7 @@ export default {
     },
     handleFillRect(canvas, color){
       const type = testColor(color);
-      if(type==="hexn") {
-        color = `#${color}`
-      } else if (type === false) {
+      if (type === false) {
         return
       }
       const context = canvas.getContext("2d");
@@ -583,28 +574,39 @@ export default {
       if (colorFormat === "rgba") {
         color = `rgba(${colorR},${colorG},${colorB}, ${this.alpha})`;
       } else if (colorFormat === "hex") {
-        color = this.colorHex;
+        color = `#${this.colorHex}`;
       } else if (colorFormat === "rgb") {
         color = `rgb(${colorR},${colorG},${colorB})`;
       }
       return color;
     },
-    handleClose(e){
+    handleTrigger(e){
+      console.log(e)
+      this.visible = !this.visible;
+      if (!this.visible) {
+        this.close();
+      }
+    },
+    handleCancel(e){
       const ele = this.$refs["zm-color-dropdown"]
       if (ele.contains(e.target)) {
         return false;
       }
-      this.hidden();
-      document.removeEventListener("mousedown", this.handleClose);
+      this.close();
     },
-    hidden(){
-      this.init()
+    close(){
+      this.hasInit = false;
       this.visible = false;
+      this.init()
+      document.removeEventListener("mousedown", this.handleCancel);
+      document.removeEventListener("mouseup", this.handleMouseup);
+      document.removeEventListener("mousemove", this.handleMousemove);
     },
     handleSubmit(){
       const { format } = this;
+      this.visible = false;
       const color = this.getColor(format)
-      this.$emit("update:value", color)
+      this.$emit("input", color)
       this.$emit("change", color)
     }
   }
