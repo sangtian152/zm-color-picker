@@ -22,10 +22,10 @@ yarn add zm-color-picker
 
 ```javascript
 import Vue from 'vue';
-import ZmSign from 'zm-color-picker';
+import ZmColorPicker from 'zm-color-picker';
 import "zm-color-picker/lib/zm-color-picker.css";
 
-Vue.use(ZmSign);
+Vue.use(ZmColorPicker);
 ```
 
 ### 最新版本
